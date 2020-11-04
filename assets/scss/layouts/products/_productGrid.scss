@@ -136,3 +136,23 @@
         }
     }
 }
+
+// Product grid - show second product image only on hover
+// -----------------------------------------------------------------------------
+
+li.product .second-image {
+    display: none;
+}
+
+li.product:hover .first-image {
+    display: none;
+}
+li.product:hover .second-image {
+    display:  block;
+}
+
+// Product grid - visibility of 'Remove All Items' button
+// -----------------------------------------------------------------------------
+.remove-all-button {
+    display: none;
+}
