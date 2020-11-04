@@ -12,9 +12,12 @@ export default class Category extends CatalogPage {
 
     onReady() {
 
-        let categoryItems = []
+        let categoryItems = {
+            'lineItems':[]
+        }
         $('li.product').each(function(index, product){
-            categoryItems.push({'quantity': 1, 'productId': $('.quickview', this).attr('data-product-id')})
+            let productId = $('.quickview', this).attr('data-product-id')
+            categoryItems.lineItems.push({'quantity': 1, 'productId': productId})
         })
 
         $('[data-button-type="add-cart"]').on('click', (e) => {
@@ -70,17 +73,27 @@ export default class Category extends CatalogPage {
             .then(response => response.json());
         }
         function deleteCart(url, cartId){
-            return fetch(url + cartId, {
-                   method: "DELETE",
-                   credentials: "same-origin",
-                   headers: {"Content-Type": "application/json"}
-            })
-            .then(response => response.json());
+            let deleteUrl = url + cartId
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": deleteUrl,
+                "method": "DELETE",
+                "headers": {}
+            }
+
+            $.ajax(settings).done(function (response) {
+                currentCart = ''
+                removeAllBtn.html('Items Removed from Cart!')
+                setTimeout(function(){
+                    removeAllBtn.css('display','none')
+                }, 3000)
+            });
         }
 
         getCart('/api/storefront/carts?include=lineItems.digitalItems.options,lineItems.physicalItems.options')
         .then(data => {
-            if(data.length){
+            if(data.length > 0){
                 currentCart = data[0]
                 removeAllBtn.css('display', 'inline-block')
             } else {
@@ -94,7 +107,7 @@ export default class Category extends CatalogPage {
             addAllBtn.html('Adding items...')
             createNewCart('/api/storefront/carts', categoryItems)
             .then(data => {
-                currentCart = data[0]
+                currentCart = data
                 removeAllBtn.css('display','inline-block')
                 addAllBtn.html('Items Added to Cart!')
                 setTimeout(function(){
@@ -107,21 +120,17 @@ export default class Category extends CatalogPage {
             addAllBtn.html('Adding items...')
             addCartItem('/api/storefront/carts/', currentCart.id, categoryItems)
             .then(data => {
-                currentCart = data[0]
+                currentCart = data
+                addAllBtn.html('Items Added to Cart!')
+                setTimeout(function(){
+                    addAllBtn.html('Add All to Cart')
+                }, 3000)
             })
             .catch(error => console.error(error));
         }
         function clearCart(){
             removeAllBtn.html('Clearing Cart...')
             deleteCart('/api/storefront/carts/', currentCart.id)
-            .then(data => {
-                currentCart = data[0]
-                addAllBtn.html('Items Removed from Cart!')
-                setTimeout(function(){
-                    addAllBtn.css('display','none')
-                }, 3000)
-            })
-            .catch(error => console.error(error));
         }
 
         addAllBtn.click(function(){
